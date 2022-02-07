@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 from os import path
 
 import todoist
@@ -70,11 +68,7 @@ def create_new_task(task):
             show_prompt(APITokenPrompt("Invalid token"))
 
 
-def main():
+def add_todoist_task():
     if not path.exists(CONFIG):
         show_prompt(APITokenPrompt("Missing token"))
     show_prompt(NewTaskWindow())
-
-
-if __name__ == "__main__":
-    main()
