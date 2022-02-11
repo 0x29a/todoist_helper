@@ -12,11 +12,12 @@ def cli():
 
 
 @click.command()
-def add():
+@click.option('-p', '--project_id')
+def add(project_id):
     """
     Add a new todoist task to the inbox.
     """
-    add_todoist_task()
+    add_todoist_task(project_id)
     click.echo("Logged.")
 
 

@@ -1,7 +1,13 @@
 from os import path
 
 import todoist
+import gi
+
+gi.require_version('Gtk', '3.0')
+
 from gi.repository import Gtk
+
+
 
 CONFIG = path.expanduser("~/.config/todoist")
 
@@ -44,31 +50,33 @@ class APITokenPrompt(Prompt):
 
 
 class NewTaskWindow(Prompt):
-    def __init__(self):
+    def __init__(self, project_id):
         super().__init__("New Task")
+        self.project_id = project_id
         self.entry.connect("activate", self.create_task)
 
     def create_task(self, *args):
         task = self.entry.get_text()
-        create_new_task(task)
+        self.create_new_task(task)
         self.destroy()
 
+    def create_new_task(self, task):
+        with open(CONFIG) as stream:
+            api = todoist.TodoistAPI(stream.read())
+            if self.project_id:
+                res = api.add_item(task, project_id=self.project_id)
+            else:
+                res = api.add_item(task)
+
+            if res.get("error_tag") == "AUTH_INVALID_TOKEN":
+                show_prompt(APITokenPrompt("Invalid token"))
 
 def show_prompt(prompt):
     prompt.show_all()
     Gtk.main()
 
 
-def create_new_task(task):
-    with open(CONFIG) as stream:
-        api = todoist.TodoistAPI(stream.read())
-        res = api.add_item(task)
-
-        if res.get("error_tag") == "AUTH_INVALID_TOKEN":
-            show_prompt(APITokenPrompt("Invalid token"))
-
-
-def add_todoist_task():
+def add_todoist_task(project_id):
     if not path.exists(CONFIG):
         show_prompt(APITokenPrompt("Missing token"))
-    show_prompt(NewTaskWindow())
+    show_prompt(NewTaskWindow(project_id))
